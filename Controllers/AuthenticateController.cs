@@ -53,7 +53,7 @@ namespace Aranea.Controllers
                 var token = new JwtSecurityToken(
                     issuer: model.Issuer,
                     audience: audience,
-                    expires: DateTime.Now.AddHours(3),
+                    expires: DateTime.Now.AddHours(6),
                     claims: authClaims,
                     signingCredentials: new Microsoft.IdentityModel.Tokens.SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                     );

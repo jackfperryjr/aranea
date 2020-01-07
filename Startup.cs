@@ -47,8 +47,6 @@ namespace Aranea
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidAudience = "http://dotnetdetail.net",
-                    ValidIssuer = "http://dotnetdetail.net",
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetValue<string>("Token")))
                 };
             });
