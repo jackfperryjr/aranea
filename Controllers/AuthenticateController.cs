@@ -60,6 +60,8 @@ namespace Aranea.Controllers
 
                 return Ok(new
                 {
+                    status = 200,
+                    message = "User logged in.",
                     token = new JwtSecurityTokenHandler().WriteToken(token),
                     expiration = token.ValidTo
                 });
