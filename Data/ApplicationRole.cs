@@ -10,26 +10,25 @@ namespace Aranea.Data
     {
         public static void CreateRoles(IServiceProvider serviceProvider, IConfiguration Configuration)
         {
-            const string adminRoleName = "Admin";
-            string[] roleNames = { adminRoleName, "SuperUser", "User", "Banned" };
+            string[] roles = { "Admin", "SuperUser", "User", "Banned" };
 
-            foreach (string roleName in roleNames)
+            foreach (string role in roles)
             {
-                CreateRole(serviceProvider, roleName);
+                CreateRole(serviceProvider, role);
             }
         }
 
-        private static void CreateRole(IServiceProvider serviceProvider, string roleName)
+        private static void CreateRole(IServiceProvider serviceProvider, string role)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            Task<bool> roleExists = roleManager.RoleExistsAsync(roleName);
-            roleExists.Wait();
+            Task<bool> exists = roleManager.RoleExistsAsync(role);
+            exists.Wait();
 
-            if (!roleExists.Result)
+            if (!exists.Result)
             {
-                Task<IdentityResult> roleResult = roleManager.CreateAsync(new IdentityRole(roleName));
-                roleResult.Wait();
+                Task<IdentityResult> result = roleManager.CreateAsync(new IdentityRole(role));
+                result.Wait();
             }
         }
     }
