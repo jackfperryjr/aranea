@@ -66,7 +66,7 @@ namespace Aranea.Controllers
                 return Ok(new 
                 {
                     status = 200,
-                    message = "User registered."
+                    message = "User registered successfully."
                 });
             }
             else 
@@ -74,7 +74,7 @@ namespace Aranea.Controllers
                 return BadRequest(new 
                 {
                     status = 400,
-                    message = "User not registered."
+                    message = "Unable to register user."
                 });
             }     
         }
@@ -91,7 +91,7 @@ namespace Aranea.Controllers
                 return NotFound(new
                 {
                     status = 404,
-                    message = "User not found."
+                    message = "Unable to find user."
                 });
             }
             else 
@@ -99,30 +99,41 @@ namespace Aranea.Controllers
                 roles = await _userManager.GetRolesAsync(user);
             }
 
-            if (roles.Count() > 0)
+            if (roles.Contains("Admin") || roles.Contains("User")) // If user is in Admin or User role.
             {
-                foreach (var role in roles)
+                if (roles.Count() > 0)
                 {
-                    await _userManager.RemoveFromRoleAsync(user, role);
+                    foreach (var role in roles)
+                    {
+                        await _userManager.RemoveFromRoleAsync(user, role);
+                    }
                 }
-            }
 
-            var result = await _userManager.DeleteAsync(user);
+                var result = await _userManager.DeleteAsync(user);
 
-            if (result.Succeeded) 
-            {
-                return Ok(new
+                if (result.Succeeded) 
                 {
-                    status = 200,
-                    message = "User account removed."
-                });
+                    return Ok(new
+                    {
+                        status = 200,
+                        message = "User account removed successfully."
+                    });
+                }
+                else 
+                {
+                    return BadRequest(new
+                    {
+                        status = 400,
+                        message = "Could not complete request. (Most likely user doesn't exist.)"
+                    });
+                }
             }
             else 
             {
                 return BadRequest(new
                 {
-                    status = 400,
-                    message = "Could not complete request. (Most likely user doesn't exist.)"
+                    status = 401,
+                    message = "User is not authorized."
                 });
             }
         }
@@ -139,7 +150,7 @@ namespace Aranea.Controllers
                 return NotFound(new
                 {
                     status = 404,
-                    message = "User not found."
+                    message = "Unable to find user."
                 });
             }
             else 
@@ -200,7 +211,7 @@ namespace Aranea.Controllers
                     return Ok(new
                     {
                         status = 200,
-                        message = "User updated."
+                        message = "User updated successfully."
                     });
                 }
                 else 
@@ -217,7 +228,7 @@ namespace Aranea.Controllers
                 return BadRequest(new
                 {
                     status = 401,
-                    message = "User not authorized."
+                    message = "User is not authorized."
                 });
             }
         }
