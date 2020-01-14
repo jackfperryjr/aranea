@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -83,6 +84,8 @@ namespace Aranea.Controllers
         public async Task<IActionResult> Delete([FromBody] ApplicationUser model)
         {
             var user = await _userManager.FindByIdAsync(model.Id);
+            IList<string> roles;
+
             if (user == null)
             {
                 return NotFound(new
@@ -91,21 +94,14 @@ namespace Aranea.Controllers
                     message = "User not found."
                 });
             }
-
-            var roles = await _userManager.GetRolesAsync(user);
-
-            if (model.Id == null)
+            else 
             {
-                return NotFound(new
-                {
-                    status = 404,
-                    message = "User not found."
-                });
+                roles = await _userManager.GetRolesAsync(user);
             }
 
             if (roles.Count() > 0)
             {
-                foreach (var role in roles.ToList())
+                foreach (var role in roles)
                 {
                     await _userManager.RemoveFromRoleAsync(user, role);
                 }
@@ -136,6 +132,8 @@ namespace Aranea.Controllers
         public async Task<IActionResult> Update([FromBody] ApplicationUser model)
         {
             var user = await _userManager.FindByIdAsync(model.Id);
+            IList<string> roles;
+
             if (user == null)
             {
                 return NotFound(new
@@ -144,67 +142,82 @@ namespace Aranea.Controllers
                     message = "User not found."
                 });
             }
-
-            if (model.UserName != null && model.UserName != user.UserName)
+            else 
             {
-                user.UserName = model.UserName;
+                roles = await _userManager.GetRolesAsync(user);
             }
 
-            if (model.FirstName != null && model.FirstName != user.FirstName)
+            if (roles.Contains("Admin") || roles.Contains("User")) // If user is in Admin or User role.
             {
-                user.FirstName = model.FirstName;
-            }
-
-            if (model.LastName != null && model.LastName != user.LastName)
-            {
-                user.LastName = model.LastName;
-            }
-
-            if (model.City != null && model.City != user.City)
-            {
-                user.City = model.City;
-            }
-
-            if (model.State != null && model.State != user.State)
-            {
-                user.State = model.State;
-            }
-
-            if (model.BirthDate != null && Convert.ToDateTime(model.BirthDate) != user.BirthDate)
-            {
-                user.BirthDate = Convert.ToDateTime(model.BirthDate);
-            }
-
-            if (model.Age != null && model.Age != user.Age)
-            {
-                user.Age = model.Age;
-            }
-
-            if (model.Profile != null && model.Profile != user.Profile)
-            {
-                user.Profile = model.Profile;
-            }
-
-            if (model.Email != null && model.Email != user.Email)
-            {
-                user.Email = model.Email;
-            }
-            
-            var result = await _userManager.UpdateAsync(user);
-            if (result.Succeeded) 
-            {
-                return Ok(new
+                if (model.UserName != null && model.UserName != user.UserName)
                 {
-                    status = 200,
-                    message = "User updated."
-                });
+                    user.UserName = model.UserName;
+                }
+
+                if (model.FirstName != null && model.FirstName != user.FirstName)
+                {
+                    user.FirstName = model.FirstName;
+                }
+
+                if (model.LastName != null && model.LastName != user.LastName)
+                {
+                    user.LastName = model.LastName;
+                }
+
+                if (model.City != null && model.City != user.City)
+                {
+                    user.City = model.City;
+                }
+
+                if (model.State != null && model.State != user.State)
+                {
+                    user.State = model.State;
+                }
+
+                if (model.BirthDate != null && Convert.ToDateTime(model.BirthDate) != user.BirthDate)
+                {
+                    user.BirthDate = Convert.ToDateTime(model.BirthDate);
+                }
+
+                if (model.Age != null && model.Age != user.Age)
+                {
+                    user.Age = model.Age;
+                }
+
+                if (model.Profile != null && model.Profile != user.Profile)
+                {
+                    user.Profile = model.Profile;
+                }
+
+                if (model.Email != null && model.Email != user.Email)
+                {
+                    user.Email = model.Email;
+                }
+                
+                var result = await _userManager.UpdateAsync(user);
+                if (result.Succeeded) 
+                {
+                    return Ok(new
+                    {
+                        status = 200,
+                        message = "User updated."
+                    });
+                }
+                else 
+                {
+                    return BadRequest(new
+                    {
+                        status = 400,
+                        message = "User could not be updated."
+                    });
+                }
             }
             else 
             {
                 return BadRequest(new
                 {
-                    status = 400,
-                    message = "User could not be updated."
+                    status = 401,
+                    message = "User not authorized."
                 });
             }
         }
