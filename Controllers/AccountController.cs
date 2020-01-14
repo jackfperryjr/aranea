@@ -59,14 +59,15 @@ namespace Aranea.Controllers
                 return Ok(new
                 {
                     status = 200,
-                    message = "User logged in.",
+                    message = "User logged in successfully.",
                     token = new JwtSecurityTokenHandler().WriteToken(token),
-                    expiration = token.ValidTo
+                    expiration = token.ValidTo,
+                    user = user
                 });
             }
-            return Unauthorized(new
+            return BadRequest(new
             {
-                status = 401,
+                status = 404,
                 message = "User is logged out or does not exist."
             });
         }
@@ -79,7 +80,7 @@ namespace Aranea.Controllers
             return Ok(new 
             {
                 status = 200,
-                message = "User logged out."
+                message = "User logged out successfully."
             });        
         } 
     }

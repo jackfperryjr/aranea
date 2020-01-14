@@ -130,7 +130,7 @@ namespace Aranea.Controllers
             }
             else 
             {
-                return BadRequest(new
+                return Unauthorized(new
                 {
                     status = 401,
                     message = "User is not authorized."
@@ -225,7 +225,7 @@ namespace Aranea.Controllers
             }
             else 
             {
-                return BadRequest(new
+                return Unauthorized(new
                 {
                     status = 401,
                     message = "User is not authorized."
