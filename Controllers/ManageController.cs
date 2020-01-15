@@ -11,6 +11,7 @@ using Aranea.Models;
 
 namespace Aranea.Controllers
 {
+    // This controller will perform actions that involve anything except login or logout.
     [Route("api")]
     [Authorize]
     public class ManageController : Controller
@@ -42,6 +43,8 @@ namespace Aranea.Controllers
                 UserName = model.Username, 
                 Email = model.Email, 
                 FirstName = model.FirstName,
+                Picture = "https://rikku.blob.core.windows.net/images/default-avatar.png",
+                Wallpaper = "https://rikku.blob.core.windows.net/images/default-wallpaper.png",
                 JoinDate = DateTime.Now
             };
             var result = await _userManager.CreateAsync(user, model.Password);
@@ -144,6 +147,12 @@ namespace Aranea.Controllers
         {
             var user = await _userManager.FindByIdAsync(model.Id);
             IList<string> roles;
+
+            // This container is used for blob storage uploads.
+            var container = ApplicationHelper.ConfigureBlobContainer(
+                                    _configuration["StorageConfig:AccountName"], // Saved in appsettings.json
+                                    _configuration["StorageConfig:AccountKey"]); // Saved in appsettings.json
+            await container.CreateIfNotExistsAsync();
 
             if (user == null)
             {

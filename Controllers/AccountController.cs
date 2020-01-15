@@ -13,22 +13,20 @@ using Aranea.Models;
 
 namespace Aranea.Controllers
 {
+    // This controller will perform login and logout only.
     [Route("api")]
     [AllowAnonymous]
     public class AccountController : Controller
     {
-        private readonly ApplicationDbContext _context;
         private UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private IConfiguration _configuration;
 
         public AccountController(
-            ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IConfiguration configuration)
         {
-            _context = context;
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
