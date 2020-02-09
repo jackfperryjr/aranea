@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Aranea.Data;
 
 namespace Aranea
@@ -57,6 +58,21 @@ namespace Aranea
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetValue<string>("Token")))
                 };
             });
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo 
+                { 
+                    Title = "Aranea", 
+                    Version = "v1",
+                    Description = "A simple authentication api.",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Jack F. Perry, Jr.",
+                        Email = "jackfperryjr@gmail.com"
+                    }
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -72,6 +88,11 @@ namespace Aranea
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Aranea v1");
+            });
 
             app.UseEndpoints(endpoints =>
             {
