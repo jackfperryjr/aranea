@@ -16,7 +16,7 @@ namespace Aranea
             using (var scope = host.Services.CreateScope())
             {
                 var provider = scope.ServiceProvider;
-				provider.GetService<ApplicationDbContext>().Database.Migrate();
+				//provider.GetService<ApplicationDbContext>().Database.Migrate();
                 ApplicationRole.CreateRoles(provider, Startup.Configuration);
             }
             host.Run();

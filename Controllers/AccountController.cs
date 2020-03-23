@@ -36,12 +36,13 @@ namespace Aranea.Controllers
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
-            var user = await _userManager.FindByNameAsync(model.Username);
-            if(user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+            UserModel user = new UserModel();
+            var identity = await _userManager.FindByNameAsync(model.Username);
+            if(user != null && await _userManager.CheckPasswordAsync(identity, model.Password))
             {
                 var authClaims = new[]
                 {
-                    new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                    new Claim(JwtRegisteredClaimNames.Sub, identity.UserName),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
 
@@ -53,6 +54,19 @@ namespace Aranea.Controllers
                     claims: authClaims,
                     signingCredentials: new Microsoft.IdentityModel.Tokens.SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                     );
+
+                user.UserName = identity.UserName;
+                user.FirstName = identity.FirstName;
+                user.LastName = identity.LastName;
+                user.BirthDate = identity.BirthDate;
+                user.Age = identity.Age;
+                user.City = identity.City;
+                user.State = identity.State;
+                user.Country = identity.Country;
+                user.Picture = identity.Picture;
+                user.Wallpaper = identity.Wallpaper;
+                user.RoleName = identity.RoleName;
+                user.JoinDate = identity.JoinDate;
 
                 return Ok(new
                 {
