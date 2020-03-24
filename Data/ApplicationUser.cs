@@ -19,6 +19,7 @@ namespace Aranea.Data
         public string Profile { get; set; }
         public string RoleName { get; set; }
         public DateTime JoinDate { get; set; }
+        public string Token { get; set; }
         public string LoggedInIP { get; set; }
         public string LoggedInCity { get; set; }
         public string LoggedInRegion { get; set; }

@@ -14,22 +14,24 @@ using Aranea.Models;
 namespace Aranea.Controllers
 {
     // This controller will perform login and logout only.
-    [Route("api")]
     [AllowAnonymous]
     public class AccountController : Controller
     {
         private UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private IConfiguration _configuration;
+        private ApplicationDbContext _context;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
+            _context = context;
         }
 
         [HttpPost]
@@ -48,13 +50,14 @@ namespace Aranea.Controllers
 
                 var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetValue<string>("Token")));
                 var token = new JwtSecurityToken(
-                    issuer: "Aranea", // This is the name of this project API.
+                    issuer: "https://chocoboapi.azurewebsites.net", 
                     audience: model.Audience,
-                    expires: DateTime.Now.AddHours(6),
+                    expires: DateTime.Now.AddHours(24),
                     claims: authClaims,
                     signingCredentials: new Microsoft.IdentityModel.Tokens.SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                     );
 
+                user.Id = identity.Id;
                 user.UserName = identity.UserName;
                 user.FirstName = identity.FirstName;
                 user.LastName = identity.LastName;
@@ -68,11 +71,14 @@ namespace Aranea.Controllers
                 user.RoleName = identity.RoleName;
                 user.JoinDate = identity.JoinDate;
 
+                identity.Token = new JwtSecurityTokenHandler().WriteToken(token);
+                await _context.SaveChangesAsync();
+
                 return Ok(new
                 {
                     status = 200,
                     message = "User logged in successfully.",
-                    token = new JwtSecurityTokenHandler().WriteToken(token),
+                    token = identity.Token,
                     expiration = token.ValidTo,
                     user = user
                 });

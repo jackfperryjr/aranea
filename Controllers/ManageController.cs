@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -12,8 +13,6 @@ using Aranea.Models;
 namespace Aranea.Controllers
 {
     // This controller will perform actions that involve anything except login or logout.
-    [Route("api")]
-    [Authorize]
     public class ManageController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -199,7 +198,7 @@ namespace Aranea.Controllers
                     user.BirthDate = Convert.ToDateTime(model.BirthDate);
                 }
 
-                if (model.Age != null && model.Age != user.Age)
+                if (model.Age != 0 && model.Age != user.Age)
                 {
                     user.Age = model.Age;
                 }
@@ -240,6 +239,43 @@ namespace Aranea.Controllers
                     message = "User is not authorized."
                 });
             }
+        }
+
+        [HttpPost]
+        [Route("authorize")]
+        public async Task<IActionResult> Authorize([FromBody] AuthenticateModel model)
+        {
+            var user = await _userManager.FindByIdAsync(model.Id);
+            var validToken = new JwtSecurityTokenHandler().ReadToken(user.Token);
+            var token = new JwtSecurityTokenHandler().ReadToken(model.Token);
+            
+            if (token.Id == validToken.Id)
+            {
+                if (validToken.ValidTo > DateTime.Now)
+                {
+                    return Ok(new
+                    {
+                        status = 200,
+                        message = "Token authorized."
+                    });
+                }
+                else
+                {
+                    return Unauthorized(new
+                    {
+                        status = 401,
+                        message = "Token is expired."
+                    });
+                }
+            }
+            else 
+            {
+                return Unauthorized(new
+                {
+                    status = 401,
+                    message = "User is not authorized."
+                });
+            }    
         }
     }
 }
