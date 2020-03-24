@@ -43,7 +43,7 @@ namespace Aranea.Controllers
                 UserName = model.Username, 
                 Email = model.Email, 
                 FirstName = model.FirstName,
-                Picture = "https://rikku.blob.core.windows.net/images/default-avatar.png",
+                Photo = "https://rikku.blob.core.windows.net/images/default-avatar.png",
                 Wallpaper = "https://rikku.blob.core.windows.net/images/default-wallpaper.png",
                 JoinDate = DateTime.Now
             };

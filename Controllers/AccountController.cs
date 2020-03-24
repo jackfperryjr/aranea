@@ -63,7 +63,7 @@ namespace Aranea.Controllers
                 user.City = identity.City;
                 user.State = identity.State;
                 user.Country = identity.Country;
-                user.Picture = identity.Picture;
+                user.Photo = identity.Photo;
                 user.Wallpaper = identity.Wallpaper;
                 user.RoleName = identity.RoleName;
                 user.JoinDate = identity.JoinDate;
