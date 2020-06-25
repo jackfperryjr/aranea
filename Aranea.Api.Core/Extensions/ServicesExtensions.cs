@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -60,11 +61,12 @@ namespace Aranea.Api.Core.Extensions
         public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfigurationSection configSection)
         {
             var appSettings = configSection.Get<AppSettings>();
-            var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+            var key = Encoding.UTF8.GetBytes(appSettings.Secret);
             services.AddAuthentication(x =>
                 {
                     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                     x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    x.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
                 })
                 .AddJwtBearer(x =>
                 {
@@ -76,10 +78,8 @@ namespace Aranea.Api.Core.Extensions
                         IssuerSigningKey = new SymmetricSecurityKey(key),
                         ValidateIssuer = true,
                         ValidIssuer = "ChocoboApi",
-                        ValidateAudience = false,
-                        ValidAudience = "Any",
-                        RequireExpirationTime = true,
-                        ValidateLifetime = true
+                        ValidateAudience = true,
+                        ValidAudiences = new List<string>() { "MoogleApi" }
                     };
                 });
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();

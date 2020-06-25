@@ -13,87 +13,38 @@ using Aranea.Api.Core.Abstractions;
 namespace Aranea.Api.Controllers.API.V1
 {
     [ApiVersion("1")]
-    [AllowAnonymous]
+    [Authorize]
     public class ManageController : ApiControllerBase
     {
         private readonly IFactory<bool, LoginModel> _loginFactory;
         private readonly IFactory<UserModel, string> _userFactory;
         private readonly IStore<RegisterModel> _userStore;
+        private readonly IStore<ApplicationUserModel> _userDeleteStore;
 
         public ManageController(
             IFactory<bool, LoginModel> loginFactory,
             IFactory<UserModel, string> userFactory,
-            IStore<RegisterModel> userStore)
+            IStore<RegisterModel> userStore,
+            IStore<ApplicationUserModel> userDeleteStore)
         {
             _loginFactory = loginFactory;
             _userFactory = userFactory;
             _userStore = userStore;
+            _userDeleteStore = userDeleteStore;
         }
 
         [HttpDelete("delete")]
-        [Authorize]
-        public async Task<IActionResult> Delete([FromBody] ApplicationUserModel model)
+        public async Task<IActionResult> Delete([FromBody] ApplicationUserModel model, CancellationToken cancellationToken = new CancellationToken())
         {
-            // var user = await _userManager.FindByIdAsync(model.Id);
-            // IList<string> roles;
-
-            // if (user == null)
-            // {
-            //     return NotFound(new
-            //     {
-            //         status = 404,
-            //         message = "Unable to find user."
-            //     });
-            // }
-            // else 
-            // {
-            //     roles = await _userManager.GetRolesAsync(user);
-            // }
-
-            // if (roles.Contains("Admin") || roles.Contains("User")) // If user is in Admin or User role.
-            // {
-            //     if (roles.Count() > 0)
-            //     {
-            //         foreach (var role in roles)
-            //         {
-            //             await _userManager.RemoveFromRoleAsync(user, role);
-            //         }
-            //     }
-
-            //     var result = await _userManager.DeleteAsync(user);
-
-            //     if (result.Succeeded) 
-            //     {
-            //         return Ok(new
-            //         {
-            //             status = 200,
-            //             message = "User account removed successfully."
-            //         });
-            //     }
-            //     else 
-            //     {
-            //         return BadRequest(new
-            //         {
-            //             status = 400,
-            //             message = "Could not complete request. (Most likely user doesn't exist.)"
-            //         });
-            //     }
-            // }
-            // else 
-            // {
-            //     return Unauthorized(new
-            //     {
-            //         status = 401,
-            //         message = "User is not authorized."
-            //     });
-            // }
-
-            return BadRequest();
+            await _userDeleteStore.DeleteAsync(model, cancellationToken);
+            return Ok(new 
+            {
+                message = "User removed successfully."
+            });  
         }
 
         [HttpPut("update")]
-        [Authorize]
-        public async Task<IActionResult> Update([FromBody] ApplicationUserModel model)
+        public async Task<IActionResult> Update([FromBody] ApplicationUserModel model, CancellationToken cancellationToken = new CancellationToken())
         {
             // var user = await _userManager.FindByIdAsync(model.Id);
             // IList<string> roles;

@@ -41,7 +41,8 @@ namespace Aranea.Api.Infrastructure.Data
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
 
-            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Secret").Value));
+            var authSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_configuration.GetSection("AppSettings:Secret").Value));
+
             var token = new JwtSecurityToken(
                 issuer: "ChocoboApi", 
                 audience: model.Audience,

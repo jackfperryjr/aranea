@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using Aranea.Api.Core.Abstractions;
 using Aranea.Api.Core.Models;
@@ -55,6 +56,11 @@ namespace Aranea.Api.Infrastructure.Data
         }
 
         public async Task<RegisterModel> UpdateAsync(RegisterModel model, CancellationToken cancellationToken = new CancellationToken())
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<RegisterModel> DeleteAsync(RegisterModel model, CancellationToken cancellationToken = new CancellationToken())
         {
             throw new NotImplementedException();
         }

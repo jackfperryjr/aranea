@@ -8,5 +8,6 @@ namespace Aranea.Api.Core.Abstractions
         Task<T> AddAsync(T entity, CancellationToken cancellationToken = new CancellationToken());
 
         Task<T> UpdateAsync(T entity, CancellationToken cancellationToken = new CancellationToken());
+        Task<T> DeleteAsync(T entity, CancellationToken cancellationToken = new CancellationToken());
     }
 }
