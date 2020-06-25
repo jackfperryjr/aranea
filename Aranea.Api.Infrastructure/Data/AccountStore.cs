@@ -90,6 +90,8 @@ namespace Aranea.Api.Infrastructure.Data
             {
                 user.Email = model.Email;
             }
+
+            user.LoggedInIP = model.LoggedInIP;
                 
             var result = await _userManager.UpdateAsync(user);
 
