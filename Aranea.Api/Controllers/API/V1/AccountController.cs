@@ -1,8 +1,12 @@
+using System.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
+using Microsoft.AspNetCore.Identity;
 using Aranea.Api.Core.Models;
 using Aranea.Api.Core.WebApi;
 using Aranea.Api.Core.Abstractions;
@@ -17,20 +21,29 @@ namespace Aranea.Api.Controllers.API.V1
         private readonly IFactory<string, string> _logoutFactory;
         private readonly IFactory<UserModel, string> _userFactory;
         private readonly IStore<RegisterModel> _userStore;
+        private readonly IStore<ApplicationUserModel> _accountStore;
         private readonly IFactory<JwtSecurityToken, LoginModel> _tokenFactory;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private UserManager<ApplicationUserModel> _userManager;
 
         public AccountController(
             IFactory<bool, LoginModel> loginFactory,
             IFactory<string, string> logoutFactory,
             IFactory<UserModel, string> userFactory,
             IStore<RegisterModel> userStore,
-            IFactory<JwtSecurityToken, LoginModel> tokenFactory)
+            IStore<ApplicationUserModel> accountStore,
+            IFactory<JwtSecurityToken, LoginModel> tokenFactory,
+            IHttpContextAccessor httpContextAccessor,
+            UserManager<ApplicationUserModel> userManager)
         {
             _loginFactory = loginFactory;
             _logoutFactory = logoutFactory;
             _userFactory = userFactory;
             _userStore = userStore;
+            _accountStore = accountStore;
             _tokenFactory = tokenFactory;
+            _httpContextAccessor = httpContextAccessor;
+            _userManager = userManager;
         }
 
         [HttpPost("register")]
@@ -88,9 +101,28 @@ namespace Aranea.Api.Controllers.API.V1
         public async Task<IActionResult> Login([FromBody] LoginModel model, CancellationToken cancellationToken = new CancellationToken())
         {
             var isLogin = await _loginFactory.GetAsync(model, cancellationToken);
+            var userIp = string.Empty;
+
+            if (_httpContextAccessor.HttpContext.Request.Headers != null)
+            {
+                var forwardedHeader = _httpContextAccessor.HttpContext.Request.Headers["X-Forwarded-For"];
+                if (!StringValues.IsNullOrEmpty(forwardedHeader))
+                    userIp = forwardedHeader.FirstOrDefault();
+            }
+
+            if (string.IsNullOrEmpty(userIp) && _httpContextAccessor.HttpContext.Connection.RemoteIpAddress != null)
+            {
+                userIp = _httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
+            }
+
             if (isLogin) 
             {
                 var user = await _userFactory.GetAsync(model.Username, cancellationToken);
+                var appUser = await _userManager.FindByNameAsync(model.Username);
+                
+                appUser.LoggedInIP = userIp;
+                await _accountStore.UpdateAsync(appUser, cancellationToken);
+
                 var token = await _tokenFactory.GetAsync(model, cancellationToken);
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 

@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json.Converters;
 using Aranea.Api.Infrastructure;
@@ -40,6 +41,7 @@ namespace Aranea.Api
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddIdentity<ApplicationUserModel, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)
                     .AddEntityFrameworkStores<ApplicationDbContext>();
+            services.AddHttpContextAccessor();
 
             var jwtSection = Configuration.GetSection(nameof(AppSettings));
             var assembly = Assembly.Load("Aranea.Api.Infrastructure");
@@ -109,6 +111,12 @@ namespace Aranea.Api
                 .AllowAnyOrigin()
                 .AllowAnyMethod()
                 .AllowAnyHeader());  
+
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+                {
+                    ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                    ForwardedHeaders.XForwardedProto
+                });  
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
