@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
 using Microsoft.AspNetCore.Identity;
 using Aranea.Api.Core.Models;
 using Aranea.Api.Core.WebApi;
 using Aranea.Api.Core.Abstractions;
+using Aranea.Api.Core.Extensions;
 
 namespace Aranea.Api.Controllers.API.V1
 {
@@ -49,51 +49,60 @@ namespace Aranea.Api.Controllers.API.V1
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModel model, CancellationToken cancellationToken = new CancellationToken())
         {
+            RegisterModel newUser = new RegisterModel();
+
             try 
             {
-                var newUser = await _userStore.AddAsync(model, cancellationToken);
-
-                if(newUser.Username != null) 
-                {
-                    LoginModel login = new LoginModel
-                    {
-                        Username = model.Username,
-                        Password = model.Password,
-                        Audience = model.Audience
-                    };
-
-                    var isLogin = await _loginFactory.GetAsync(login, cancellationToken);
-
-                    if (isLogin) 
-                    {
-                        var user = await _userFactory.GetAsync(login.Username, cancellationToken);
-                        var token = await _tokenFactory.GetAsync(login, cancellationToken);
-                        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-
-                        return Ok(new
-                        {
-                            message = "User logged in successfully.",
-                            token = tokenString,
-                            expiration = token.ValidTo,
-                            user = user
-                        });
-                    }
-                    else 
-                    {
-                        return BadRequest(new
-                        {
-                            message = "User is logged out or does not exist."
-                        });
-                    }
-                }
-                else 
-                {
-                    return BadRequest();
-                }
+                newUser = await _userStore.AddAsync(model, cancellationToken);
             }
             catch
             {
-                return BadRequest();
+                return BadRequest(new
+                {
+                    message = "An error occurred processing the registration."
+                });
+            }
+
+            if(newUser.Username != null) 
+            {
+                LoginModel login = new LoginModel
+                {
+                    Username = model.Username,
+                    Password = model.Password,
+                    Audience = model.Audience
+                };
+
+                var isLogin = await _loginFactory.GetAsync(login, cancellationToken);
+
+                if (isLogin) 
+                {
+                    await ApplicationExtensions.GetLoginLocationData(model.Username, _httpContextAccessor, _userManager, _accountStore);
+                    var user = await _userFactory.GetAsync(login.Username, cancellationToken);
+                    var token = await _tokenFactory.GetAsync(login, cancellationToken);
+                    var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+                    return Ok(new
+                    {
+                        message = "User logged in successfully.",
+                        token = tokenString,
+                        expiration = token.ValidTo,
+                        user = user
+                    });
+                }
+                else 
+                {
+                    return BadRequest(new
+                    {
+                        message = "User is logged out or does not exist."
+                    });
+                }
+            }
+            else 
+            {
+                return BadRequest(new
+                {
+                    message = "Something weird happened."
+                });
             }
         }
 
@@ -101,28 +110,11 @@ namespace Aranea.Api.Controllers.API.V1
         public async Task<IActionResult> Login([FromBody] LoginModel model, CancellationToken cancellationToken = new CancellationToken())
         {
             var isLogin = await _loginFactory.GetAsync(model, cancellationToken);
-            var userIp = string.Empty;
-
-            if (_httpContextAccessor.HttpContext.Request.Headers != null)
-            {
-                var forwardedHeader = _httpContextAccessor.HttpContext.Request.Headers["X-Forwarded-For"];
-                if (!StringValues.IsNullOrEmpty(forwardedHeader))
-                    userIp = forwardedHeader.FirstOrDefault();
-            }
-
-            if (string.IsNullOrEmpty(userIp) && _httpContextAccessor.HttpContext.Connection.RemoteIpAddress != null)
-            {
-                userIp = _httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
-            }
 
             if (isLogin) 
             {
+                await ApplicationExtensions.GetLoginLocationData(model.Username, _httpContextAccessor, _userManager, _accountStore);
                 var user = await _userFactory.GetAsync(model.Username, cancellationToken);
-                var appUser = await _userManager.FindByNameAsync(model.Username);
-                
-                appUser.LoggedInIP = userIp;
-                await _accountStore.UpdateAsync(appUser, cancellationToken);
-
                 var token = await _tokenFactory.GetAsync(model, cancellationToken);
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 

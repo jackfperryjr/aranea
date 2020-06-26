@@ -42,11 +42,32 @@ namespace Aranea.Api.Controllers.API.V1
         [HttpPut("update")]
         public async Task<IActionResult> Update([FromBody] ApplicationUserModel model, CancellationToken cancellationToken = new CancellationToken())
         {
-            await _accountStore.UpdateAsync(model, cancellationToken);
-            return Ok(new 
+            if (model.Id == null || model.UserName == null)
             {
-                message = "User updated successfully."
-            });  
+                return BadRequest(new
+                {
+                    message = "A username and id is required."
+                });
+            }
+
+            try
+            {
+                await _accountStore.UpdateAsync(model, cancellationToken);
+                var user = await _userFactory.GetAsync(model.UserName, cancellationToken);
+                return Ok(new 
+                {
+                    message = "User updated successfully.",
+                    user = user
+                });  
+            }
+            catch
+            {
+                return BadRequest(new
+                {
+                    message = "An error occurred processing the update."
+                });
+            }
+
         }
     }
 }
