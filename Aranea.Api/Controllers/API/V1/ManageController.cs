@@ -29,14 +29,39 @@ namespace Aranea.Api.Controllers.API.V1
             _accountStore = accountStore;
         }
 
+        [HttpGet("get")]
+        public async Task<IActionResult> Get([FromBody] ApplicationUserModel model, CancellationToken cancellationToken = new CancellationToken())
+        {
+            try 
+            {
+                var user = await _userFactory.GetAsync(model.UserName, cancellationToken);
+                return Ok(new
+                {
+                    message = "User details retrieved successfully.",
+                    user = user
+                });
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
+
         [HttpDelete("delete")]
         public async Task<IActionResult> Delete([FromBody] ApplicationUserModel model, CancellationToken cancellationToken = new CancellationToken())
         {
-            await _accountStore.DeleteAsync(model, cancellationToken);
-            return Ok(new 
+            try
             {
-                message = "User removed successfully."
-            });  
+                await _accountStore.DeleteAsync(model, cancellationToken);
+                return Ok(new 
+                {
+                    message = "User removed successfully."
+                });  
+            }
+            catch 
+            {
+                return BadRequest();
+            }
         }
 
         [HttpPut("update")]

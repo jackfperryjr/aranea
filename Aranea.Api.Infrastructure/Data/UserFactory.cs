@@ -30,6 +30,7 @@ namespace Aranea.Api.Infrastructure.Data
 
             user.Id = identity.Id;
             user.UserName = identity.UserName;
+            user.Email = identity.Email;
             user.FirstName = identity.FirstName;
             user.LastName = identity.LastName;
             user.BirthDate = identity.BirthDate;
