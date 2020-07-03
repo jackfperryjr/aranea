@@ -50,7 +50,7 @@ namespace Aranea.Api.Infrastructure.Data
                                     _configuration["StorageConfig:AccountName"], 
                                     _configuration["StorageConfig:AccountKey"]); 
             await container.CreateIfNotExistsAsync();
-            var newID = new Guid();
+            var newID = Guid.NewGuid();
 
             if (model.Photo != user.Photo)
             {
