@@ -79,7 +79,7 @@ namespace Aranea.Api.Core.Extensions
                         ValidateIssuer = true,
                         ValidIssuer = "ChocoboApi",
                         ValidateAudience = true,
-                        ValidAudiences = new List<string>() { "MoogleApi" }
+                        ValidAudiences = new List<string>() { "ChocoboApi", "MoogleApi" }
                     };
                 });
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();

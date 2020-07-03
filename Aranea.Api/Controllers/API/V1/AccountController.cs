@@ -74,27 +74,34 @@ namespace Aranea.Api.Controllers.API.V1
 
                 var isLogin = await _loginFactory.GetAsync(login, cancellationToken);
 
-                if (isLogin) 
+                try 
                 {
-                    await ApplicationExtensions.GetLoginLocationData(model.Username, _httpContextAccessor, _userManager, _accountStore);
-                    var user = await _userFactory.GetAsync(login.Username, cancellationToken);
-                    var token = await _tokenFactory.GetAsync(login, cancellationToken);
-                    var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                    if (isLogin) 
+                    {
+                        await ApplicationExtensions.GetLoginLocationData(model.Username, _httpContextAccessor, _userManager, _accountStore);
+                        var user = await _userFactory.GetAsync(login.Username, cancellationToken);
+                        var token = await _tokenFactory.GetAsync(login, cancellationToken);
+                        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-                    return Ok(new
+                        return Ok(new
+                        {
+                            message = "User logged in successfully.",
+                            token = tokenString,
+                            expiration = token.ValidTo,
+                            user = user
+                        });
+                    }
+                    else 
                     {
-                        message = "User logged in successfully.",
-                        token = tokenString,
-                        expiration = token.ValidTo,
-                        user = user
-                    });
+                        return Unauthorized(new
+                        {
+                            message = "User login failed."
+                        });
+                    }
                 }
-                else 
+                catch 
                 {
-                    return BadRequest(new
-                    {
-                        message = "User is logged out or does not exist."
-                    });
+                    return BadRequest();
                 }
             }
             else 
@@ -111,27 +118,34 @@ namespace Aranea.Api.Controllers.API.V1
         {
             var isLogin = await _loginFactory.GetAsync(model, cancellationToken);
 
-            if (isLogin) 
+            try 
             {
-                await ApplicationExtensions.GetLoginLocationData(model.Username, _httpContextAccessor, _userManager, _accountStore);
-                var user = await _userFactory.GetAsync(model.Username, cancellationToken);
-                var token = await _tokenFactory.GetAsync(model, cancellationToken);
-                var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                if (isLogin) 
+                {
+                    await ApplicationExtensions.GetLoginLocationData(model.Username, _httpContextAccessor, _userManager, _accountStore);
+                    var user = await _userFactory.GetAsync(model.Username, cancellationToken);
+                    var token = await _tokenFactory.GetAsync(model, cancellationToken);
+                    var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-                return Ok(new
+                    return Ok(new
+                    {
+                        message = "User logged in successfully.",
+                        token = tokenString,
+                        expiration = token.ValidTo,
+                        user = user
+                    });
+                }
+                else 
                 {
-                    message = "User logged in successfully.",
-                    token = tokenString,
-                    expiration = token.ValidTo,
-                    user = user
-                });
+                    return Unauthorized(new
+                    {
+                        message = "User login failed."
+                    });
+                }
             }
-            else 
+            catch 
             {
-                return BadRequest(new
-                {
-                    message = "User is logged out or does not exist."
-                });
+                return BadRequest();
             }
         }
 

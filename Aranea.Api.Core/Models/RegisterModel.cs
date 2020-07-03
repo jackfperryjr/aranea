@@ -6,7 +6,7 @@ namespace Aranea.Api.Core.Models
     public class RegisterModel
     {
         [Required]
-        [EmailAddress]
+        [EmailAddress(ErrorMessage = "email is not a valid email address")]
         public string Email { get; set; }
 
         [Required]
@@ -18,12 +18,12 @@ namespace Aranea.Api.Core.Models
         public DateTime JoinDate { get; set; }
 
         [Required]
-        [StringLength(12, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [StringLength(12, ErrorMessage = "the {0} must be between {2} and {1} characters", MinimumLength = 6)]
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
         [DataType(DataType.Password)]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        [Compare("Password", ErrorMessage = "the passwords do not match")]
         public string ConfirmPassword { get; set; }
 
         public string Audience { get; set; }
