@@ -50,6 +50,7 @@ namespace Aranea.Api.Infrastructure.Data
                                     _configuration["StorageConfig:AccountName"], 
                                     _configuration["StorageConfig:AccountKey"]); 
             await container.CreateIfNotExistsAsync();
+            var newID = new Guid();
 
             if (model.Photo != user.Photo)
             {
@@ -61,7 +62,7 @@ namespace Aranea.Api.Infrastructure.Data
                     {
                         if (files[i].Name == "photo")
                         {
-                            var newBlob = container.GetBlockBlobReference(user.Id + "-p.png");
+                            var newBlob = container.GetBlockBlobReference(newID + "-p.png");
 
                             using (var filestream = new MemoryStream())
                             {   
@@ -70,7 +71,7 @@ namespace Aranea.Api.Infrastructure.Data
                                 await newBlob.UploadFromStreamAsync(filestream);
                             }
 
-                            user.Photo = "https://rikku.blob.core.windows.net/images/" + user.Id + "-p.png";
+                            user.Photo = "https://rikku.blob.core.windows.net/images/" + newID + "-p.png";
                         }
                     }
                 }
@@ -86,7 +87,7 @@ namespace Aranea.Api.Infrastructure.Data
                     {
                         if (files[i].Name == "wallpaper")
                         {
-                            var newBlob = container.GetBlockBlobReference(user.Id + "-w.png");
+                            var newBlob = container.GetBlockBlobReference(newID + "-w.png");
 
                             using (var filestream = new MemoryStream())
                             {   
@@ -95,7 +96,7 @@ namespace Aranea.Api.Infrastructure.Data
                                 await newBlob.UploadFromStreamAsync(filestream);
                             }
 
-                            user.Wallpaper = "https://rikku.blob.core.windows.net/images/" + user.Id + "-w.png";
+                            user.Wallpaper = "https://rikku.blob.core.windows.net/images/" + newID + "-w.png";
                         }
                     }
                 }
