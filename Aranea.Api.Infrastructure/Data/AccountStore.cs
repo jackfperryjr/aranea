@@ -1,10 +1,12 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Aranea.Api.Core.Extensions;
 using Aranea.Api.Core.Abstractions;
@@ -18,17 +20,20 @@ namespace Aranea.Api.Infrastructure.Data
         private readonly SignInManager<ApplicationUserModel> _signInManager;
         private ApplicationDbContext _context;
         private IConfiguration _configuration;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public AccountStore(
             UserManager<ApplicationUserModel> userManager,
             SignInManager<ApplicationUserModel> signInManager,
             ApplicationDbContext context,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IHttpContextAccessor httpContextAccessor)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
             _configuration = configuration;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<ApplicationUserModel> AddAsync(ApplicationUserModel model, CancellationToken cancellationToken = new CancellationToken())
@@ -40,11 +45,61 @@ namespace Aranea.Api.Infrastructure.Data
         {
             var user = await _userManager.FindByIdAsync(model.Id);
 
-            // // This container is used for blob storage uploads.
-            // var container = ApplicationExtensions.ConfigureBlobContainer(
-            //                         _configuration["StorageConfig:AccountName"], 
-            //                         _configuration["StorageConfig:AccountKey"]); 
-            // await container.CreateIfNotExistsAsync();
+            // This container is used for blob storage uploads.
+            var container = ApplicationExtensions.ConfigureBlobContainer(
+                                    _configuration["StorageConfig:AccountName"], 
+                                    _configuration["StorageConfig:AccountKey"]); 
+            await container.CreateIfNotExistsAsync();
+
+            if (model.Photo != user.Photo)
+            {
+                var files = _httpContextAccessor.HttpContext.Request.Form.Files;
+
+                if (files.Count != 0) 
+                {
+                    for (var i = 0; i < files.Count; i++)
+                    {
+                        if (files[i].Name == "picture")
+                        {
+                            var newBlob = container.GetBlockBlobReference(user.Id + "-p.png");
+
+                            using (var filestream = new MemoryStream())
+                            {   
+                                files[i].CopyTo(filestream);
+                                filestream.Position = 0;
+                                await newBlob.UploadFromStreamAsync(filestream);
+                            }
+
+                            user.Photo = "https://rikku.blob.core.windows.net/images/" + user.Id + "-p.png";
+                        }
+                    }
+                }
+            }
+
+            if (model.Wallpaper != user.Wallpaper)
+            {
+                var files = _httpContextAccessor.HttpContext.Request.Form.Files;
+
+                if (files.Count != 0) 
+                {
+                    for (var i = 0; i < files.Count; i++)
+                    {
+                        if (files[i].Name == "wallpaper")
+                        {
+                            var newBlob = container.GetBlockBlobReference(user.Id + "-w.png");
+
+                            using (var filestream = new MemoryStream())
+                            {   
+                                files[i].CopyTo(filestream);
+                                filestream.Position = 0;
+                                await newBlob.UploadFromStreamAsync(filestream);
+                            }
+
+                            user.Wallpaper = "https://rikku.blob.core.windows.net/images/" + user.Id + "-w.png";
+                        }
+                    }
+                }
+            }
 
             // if (model.UserName != null && model.UserName != user.UserName)
             // {
@@ -92,7 +147,6 @@ namespace Aranea.Api.Infrastructure.Data
             }
 
             user.LoggedInIP = model.LoggedInIP;
-                
             var result = await _userManager.UpdateAsync(user);
 
             return model;

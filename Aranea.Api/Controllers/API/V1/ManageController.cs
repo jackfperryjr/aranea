@@ -92,7 +92,6 @@ namespace Aranea.Api.Controllers.API.V1
                     message = "An error occurred processing the update."
                 });
             }
-
         }
     }
 }
