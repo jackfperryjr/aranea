@@ -59,7 +59,7 @@ namespace Aranea.Api.Infrastructure.Data
                 {
                     for (var i = 0; i < files.Count; i++)
                     {
-                        if (files[i].Name == "picture")
+                        if (files[i].Name == "photo")
                         {
                             var newBlob = container.GetBlockBlobReference(user.Id + "-p.png");
 
