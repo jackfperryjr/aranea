@@ -64,8 +64,8 @@ namespace Aranea.Api.Controllers.API.V1
             }
         }
 
-        [HttpPost("update")]
-        public async Task<IActionResult> Update([FromBody] ApplicationUserModel model, CancellationToken cancellationToken = new CancellationToken())
+        [HttpPut("update")]
+        public async Task<IActionResult> Update([FromForm] ApplicationUserModel model, CancellationToken cancellationToken = new CancellationToken())
         {
             if (model.Id == null || model.UserName == null)
             {
