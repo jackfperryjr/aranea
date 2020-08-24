@@ -1,4 +1,3 @@
-using System.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading;
 using System.Threading.Tasks;

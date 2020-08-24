@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
@@ -35,12 +37,13 @@ namespace Aranea.Api.Infrastructure.Data
         public async Task<JwtSecurityToken> GetAsync(LoginModel model, CancellationToken cancellationToken = default(CancellationToken))
         {
             var identity = await _userManager.FindByNameAsync(model.Username);
-            var authClaims = new[]
+            var authClaims = new List<Claim>
                 {
                     new Claim(JwtRegisteredClaimNames.Sub, identity.UserName),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
-
+            var roles = await _userManager.GetRolesAsync(identity);
+            authClaims.AddRange(roles.Select(role => new Claim(ClaimsIdentity.DefaultRoleClaimType, role)));
             var authSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_configuration.GetSection("AppSettings:Secret").Value));
 
             var token = new JwtSecurityToken(
