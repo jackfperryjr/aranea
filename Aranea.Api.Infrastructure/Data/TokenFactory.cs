@@ -49,7 +49,7 @@ namespace Aranea.Api.Infrastructure.Data
             var token = new JwtSecurityToken(
                 issuer: "ChocoboApi", 
                 audience: model.Audience,
-                expires: DateTime.Now.AddHours(24),
+                expires: DateTime.Now.AddMinutes(20),
                 claims: authClaims,
                 signingCredentials: new Microsoft.IdentityModel.Tokens.SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
             );
