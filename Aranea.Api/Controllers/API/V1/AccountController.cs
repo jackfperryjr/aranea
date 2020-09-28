@@ -122,8 +122,8 @@ namespace Aranea.Api.Controllers.API.V1
                 if (isLogin) 
                 {
                     await ApplicationExtensions.GetLoginLocationData(model.Username, _httpContextAccessor, _userManager, _accountStore);
-                    var user = await _userFactory.GetAsync(model.Username, cancellationToken);
                     var token = await _tokenFactory.GetAsync(model, cancellationToken);
+                    var user = await _userFactory.GetAsync(model.Username, cancellationToken);
                     var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
                     return Ok(new
@@ -131,6 +131,7 @@ namespace Aranea.Api.Controllers.API.V1
                         message = "User logged in successfully.",
                         token = tokenString,
                         expiration = token.ValidTo,
+                        refreshToken = user.Token,
                         user = user
                     });
                 }

@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Identity;
 using Aranea.Api.Core.Abstractions;
 using Aranea.Api.Core.Models;
+using Aranea.Api.Core.Extensions;
 
 namespace Aranea.Api.Infrastructure.Data
 {
@@ -46,6 +47,8 @@ namespace Aranea.Api.Infrastructure.Data
             authClaims.AddRange(roles.Select(role => new Claim(ClaimsIdentity.DefaultRoleClaimType, role)));
             var authSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_configuration.GetSection("AppSettings:Secret").Value));
 
+            var refreshToken = ApplicationExtensions.GenerateRefreshToken();
+
             var token = new JwtSecurityToken(
                 issuer: "ChocoboApi", 
                 audience: model.Audience,
@@ -54,7 +57,7 @@ namespace Aranea.Api.Infrastructure.Data
                 signingCredentials: new Microsoft.IdentityModel.Tokens.SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
             );
 
-            identity.Token = new JwtSecurityTokenHandler().WriteToken(token);
+            identity.Token = refreshToken;//new JwtSecurityTokenHandler().WriteToken(token);
             await _context.SaveChangesAsync();
 
             return token;

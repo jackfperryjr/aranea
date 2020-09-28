@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -80,6 +81,16 @@ namespace Aranea.Api.Core.Extensions
             // appUser.LoggedInCountry = userCountry;
 
             await _accountStore.UpdateAsync(appUser, cancellationToken);
+        }
+
+        public static string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using (var x = RandomNumberGenerator.Create())
+            {
+                x.GetBytes(randomNumber);
+                return Convert.ToBase64String(randomNumber);
+            }
         }
     }
 }

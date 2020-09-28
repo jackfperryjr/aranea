@@ -42,6 +42,7 @@ namespace Aranea.Api.Infrastructure.Data
             user.Wallpaper = identity.Wallpaper;
             user.RoleName = identity.RoleName;
             user.JoinDate = identity.JoinDate;
+            user.Token = identity.Token;
 
             return user;
         }

@@ -20,5 +20,7 @@ namespace Aranea.Api.Core.Models
         public string Wallpaper { get; set; }
         public string RoleName { get; set; }
         public DateTime JoinDate { get; set; }
+        [JsonIgnore]
+        public string Token { get; set; }
     }
 }

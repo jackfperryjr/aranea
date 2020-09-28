@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -29,12 +30,14 @@ namespace Aranea.Api.Controllers.API.V1
             _accountStore = accountStore;
         }
 
-        [HttpGet("get")]
-        public async Task<IActionResult> Get([FromBody] ApplicationUserModel model, CancellationToken cancellationToken = new CancellationToken())
+        [AllowAnonymous]
+        [Obsolete]
+        [HttpGet("get/{userName}")]
+        public async Task<IActionResult> Get(string userName, CancellationToken cancellationToken = new CancellationToken())
         {
             try 
             {
-                var user = await _userFactory.GetAsync(model.UserName, cancellationToken);
+                var user = await _userFactory.GetAsync(userName, cancellationToken);
                 return Ok(new
                 {
                     message = "User details retrieved successfully.",
