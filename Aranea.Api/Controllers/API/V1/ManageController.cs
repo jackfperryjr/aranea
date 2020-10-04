@@ -38,11 +38,7 @@ namespace Aranea.Api.Controllers.API.V1
             try 
             {
                 var user = await _userFactory.GetAsync(userName, cancellationToken);
-                return Ok(new
-                {
-                    message = "User details retrieved successfully.",
-                    user = user
-                });
+                return Ok(user);
             }
             catch
             {
