@@ -169,7 +169,7 @@ namespace Aranea.Api.Controllers.API.V1
             {
                 if (value == "simplewebrtc")
                 {
-                    return Ok("https://api.simplewebrtc.com/config/guest/152fc7a1fc48368c4c948f9e");
+                    return Ok("'https://api.simplewebrtc.com/config/guest/152fc7a1fc48368c4c948f9e'");
                 }
                 else
                 {
