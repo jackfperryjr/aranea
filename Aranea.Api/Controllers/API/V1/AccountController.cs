@@ -1,3 +1,4 @@
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading;
 using System.Threading.Tasks;
@@ -158,6 +159,27 @@ namespace Aranea.Api.Controllers.API.V1
             {
                 message = "User logged out successfully."
             });        
+        } 
+
+        [Obsolete]
+        [HttpGet("api/{value}")] 
+        public async Task<IActionResult> GetApiValue(string value, CancellationToken cancellationToken = new CancellationToken()) 
+        { 
+            try
+            {
+                if (value == "simplewebrtc")
+                {
+                    return Ok("https://api.simplewebrtc.com/config/guest/152fc7a1fc48368c4c948f9e");
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch
+            {
+                return BadRequest();
+            }    
         } 
     }
 }
