@@ -2,6 +2,9 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +14,7 @@ using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json;
 using Aranea.Api.Core.Abstractions;
 using Aranea.Api.Core.Models;
 
@@ -90,6 +94,25 @@ namespace Aranea.Api.Core.Extensions
             {
                 x.GetBytes(randomNumber);
                 return Convert.ToBase64String(randomNumber);
+            }
+        }
+
+        public static async Task<T> Get<T>(string user, string secret)
+        {
+            using (var client = new HttpClient())
+            {
+                // var values = new List<KeyValuePair<string, string>>();
+                // values.Add(new KeyValuePair<string, string>("grant_type", "client_credentials"));
+                // var content = new FormUrlEncodedContent(values);
+                var authenticationString = $"{user}:{secret}";
+                var base64EncodedAuthenticationString = Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(authenticationString));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
+
+                var result = await client.GetAsync("https://api.simplewebrtc.com/rooms/active");
+                result.EnsureSuccessStatusCode();
+                string resultString = await result.Content.ReadAsStringAsync();
+                T resultContent = JsonConvert.DeserializeObject<T>(resultString);
+                return resultContent;
             }
         }
     }

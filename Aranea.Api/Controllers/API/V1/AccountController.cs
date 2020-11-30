@@ -1,11 +1,14 @@
 using System;
+using System.Web;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Aranea.Api.Core.Models;
 using Aranea.Api.Core.WebApi;
 using Aranea.Api.Core.Abstractions;
@@ -25,6 +28,7 @@ namespace Aranea.Api.Controllers.API.V1
         private readonly IFactory<JwtSecurityToken, LoginModel> _tokenFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private UserManager<ApplicationUserModel> _userManager;
+        private IConfiguration _configuration;
 
         public AccountController(
             IFactory<bool, LoginModel> loginFactory,
@@ -34,7 +38,8 @@ namespace Aranea.Api.Controllers.API.V1
             IStore<ApplicationUserModel> accountStore,
             IFactory<JwtSecurityToken, LoginModel> tokenFactory,
             IHttpContextAccessor httpContextAccessor,
-            UserManager<ApplicationUserModel> userManager)
+            UserManager<ApplicationUserModel> userManager,
+            IConfiguration configuration)
         {
             _loginFactory = loginFactory;
             _logoutFactory = logoutFactory;
@@ -44,6 +49,7 @@ namespace Aranea.Api.Controllers.API.V1
             _tokenFactory = tokenFactory;
             _httpContextAccessor = httpContextAccessor;
             _userManager = userManager;
+            _configuration = configuration;
         }
 
         [HttpPost("register")]
@@ -162,24 +168,29 @@ namespace Aranea.Api.Controllers.API.V1
         } 
 
         [Obsolete]
-        [HttpGet("api/{value}")] 
-        public async Task<IActionResult> GetApiValue(string value, CancellationToken cancellationToken = new CancellationToken()) 
+        [HttpGet("penelo")] 
+        public async Task<IActionResult> GetPenelo(string value, CancellationToken cancellationToken = new CancellationToken()) 
         { 
-            try
+            var penelo = _httpContextAccessor.HttpContext.Request.Host;
+
+            if (penelo.ToString() == _configuration["Penelo:Key"])
             {
-                if (value == "simplewebrtc")
+                try
                 {
-                    return Ok("https://api.simplewebrtc.com/config/guest/152fc7a1fc48368c4c948f9e");
+                    var key = _configuration["SimpleWebRTC:Key"];
+                    var secret = _configuration["SimpleWebRTC:Secret"];
+                    var x = await ApplicationExtensions.Get<Penelo>(key, secret);
+                    return Ok(x);
                 }
-                else
+                catch
                 {
                     return BadRequest();
-                }
+                }  
             }
-            catch
+            else
             {
-                return BadRequest();
-            }    
+                return BadRequest("Sorry, bro.");
+            }  
         } 
     }
 }
