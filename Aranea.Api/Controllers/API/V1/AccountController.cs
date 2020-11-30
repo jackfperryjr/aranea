@@ -171,9 +171,10 @@ namespace Aranea.Api.Controllers.API.V1
         [HttpGet("penelo")] 
         public async Task<IActionResult> GetPenelo(string value, CancellationToken cancellationToken = new CancellationToken()) 
         { 
-            var penelo = _httpContextAccessor.HttpContext.Request.Host;
+            var penelo = _httpContextAccessor.HttpContext.Request.Headers["Origin"];
+            var test = _httpContextAccessor.HttpContext.Request;
             
-            if (penelo.Host.ToString() == _configuration["Penelo"])
+            if (penelo.ToString() == _configuration["Penelo"])
             {
                 try
                 {
