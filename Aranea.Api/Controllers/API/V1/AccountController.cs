@@ -173,7 +173,7 @@ namespace Aranea.Api.Controllers.API.V1
         { 
             var penelo = _httpContextAccessor.HttpContext.Request.Host;
 
-            if (penelo.ToString() == _configuration["Penelo:Key"])
+            if (penelo.Host.ToString() == _configuration["Penelo:Key"])
             {
                 try
                 {
