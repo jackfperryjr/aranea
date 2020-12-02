@@ -189,7 +189,10 @@ namespace Aranea.Api.Controllers.API.V1
             }
             else
             {
-                return BadRequest("Sorry, bro.");
+                return BadRequest(new 
+                {
+                    message = "Sorry, bro."
+                });
             }  
         } 
     }
