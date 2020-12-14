@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+        <meta property="og:url" content="chocobo.moogleapi.com">
+        <meta property="og:type" content="api">
+        <meta property="og:title" content="ChocoboAPI">
+        <meta property="og:owner" content="Jack F. Perry, Jr.">
+        <meta name="author" content="Jack F. Perry, Jr.">
+        <environment include="Development, Production">
+        @RenderSection("Styles", false)
+        </environment>
+        <title>chocoboAPI</title>
+    </head>
+    <body data-dm-shortcut-enabled="true" data-set-preferred-theme-onload="true">
+        <div id="main">
+            @RenderBody()
+        </div>
+        @* <footer>
+            <span class="copyright">&copy; 2018 - @DateTime.Now.Year</span>
+            <a class="text-primary" asp-controller="Home" asp-action="Index">
+                <span>moogle</span>
+                <span class="text-dark site-span-api site-span-api-sm">API</span>
+            </a> 
+            <span id="social-icons">
+                <a href="https://www.facebook.com/jackfperryjr" target="_blank" title="Visit Facebook."><i class="fab fa-facebook-square"></i></a>
+                <a href="https://www.linkedin.com/in/jackfperryjr" target="_blank" title="Visit LinkedIn."><i class="fab fa-linkedin"></i></a>
+                <a href="https://github.com/jackfperryjr" target="_blank" title="Visit GitHub."><i class="fab fa-github-square"></i></a>
+                <a href="https://www.instagram.com/jackfperryjr" target="_blank" title="Visit Instagram."><i class="fab fa-instagram"></i></a>
+            </span>
+        </footer> *@
+        @RenderSection("Scripts", required: false)
+    </body>
+</html>

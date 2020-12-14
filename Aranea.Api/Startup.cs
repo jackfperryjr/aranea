@@ -92,6 +92,9 @@ namespace Aranea.Api
 
                         x.AddSecurityRequirement(security);
                     });  // Generates Authorize button and makes swagger aware of authorization with JWT
+
+            services.AddControllersWithViews();
+            services.AddRouting(x => x.LowercaseUrls = true);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -101,11 +104,8 @@ namespace Aranea.Api
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-            else 
-            {
-                app.UseSwaggerDocuments();
-            }
 
+            app.UseSwaggerDocuments();
             app.UseRouting();
             app.UseCors(x => x
                 .AllowAnyOrigin()
@@ -123,6 +123,9 @@ namespace Aranea.Api
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(x => {
+                x.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
                 x.MapControllers();
             });
         }
