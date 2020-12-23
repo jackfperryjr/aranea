@@ -168,7 +168,7 @@ namespace Aranea.Api.Controllers.API.V1
         } 
 
         [HttpPost("refresh")] 
-        public async Task<IActionResult> Refresh(string refreshToken, CancellationToken cancellationToken = new CancellationToken()) 
+        public async Task<IActionResult> Refresh([FromBody] string refreshToken, CancellationToken cancellationToken = new CancellationToken()) 
         { 
             var userName = ApplicationExtensions.GetUserFromAccessToken(_httpContextAccessor);
             var user = await _userFactory.GetAsync(userName, cancellationToken);
