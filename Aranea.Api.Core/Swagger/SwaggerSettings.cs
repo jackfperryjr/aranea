@@ -6,10 +6,10 @@ namespace Aranea.Api.Core.Swagger
     {
         public SwaggerSettings()
         {
-            Name = "ChocoboApi";
+            Name = "chocoboAPI";
             Info = new OpenApiInfo
             {
-                Title = "ChocoboApi",
+                Title = "chocoboAPI",
                 Description = "Authentication API."
             };
         }

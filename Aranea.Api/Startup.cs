@@ -91,7 +91,7 @@ namespace Aranea.Api
                         });
 
                         x.AddSecurityRequirement(security);
-                    });  // Generates Authorize button and makes swagger aware of authorization with JWT
+                    });  
 
             services.AddControllersWithViews();
             services.AddRouting(x => x.LowercaseUrls = true);

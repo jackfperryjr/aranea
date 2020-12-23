@@ -77,9 +77,9 @@ namespace Aranea.Api.Core.Extensions
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(key),
                         ValidateIssuer = true,
-                        ValidIssuer = "ChocoboApi",
+                        ValidIssuer = "chocoboAPI",
                         ValidateAudience = true,
-                        ValidAudiences = new List<string>() { "ChocoboApi", "MoogleApi" }
+                        ValidAudiences = new List<string>() { "chocoboAPI", "moogleAPI" }
                     };
                 });
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();

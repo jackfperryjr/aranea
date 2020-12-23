@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -87,6 +89,20 @@ namespace Aranea.Api.Core.Extensions
             await _accountStore.UpdateAsync(appUser, cancellationToken);
         }
 
+        public static string GetAccessTokenFromHeaders(IHttpContextAccessor _httpContextAccessor)
+        {
+            return _httpContextAccessor.HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+        }
+
+        public static string GetUserFromAccessToken(IHttpContextAccessor _httpContextAccessor)
+        {
+            var accessToken = GetAccessTokenFromHeaders(_httpContextAccessor);
+            var token = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+            var user = token.Claims.First(x => x.Type == "sub").Value;
+
+            return user;
+        }
+
         public static string GenerateRefreshToken()
         {
             var randomNumber = new byte[32];
@@ -94,25 +110,6 @@ namespace Aranea.Api.Core.Extensions
             {
                 x.GetBytes(randomNumber);
                 return Convert.ToBase64String(randomNumber);
-            }
-        }
-
-        public static async Task<T> Get<T>(string user, string secret)
-        {
-            using (var client = new HttpClient())
-            {
-                // var values = new List<KeyValuePair<string, string>>();
-                // values.Add(new KeyValuePair<string, string>("grant_type", "client_credentials"));
-                // var content = new FormUrlEncodedContent(values);
-                var authenticationString = $"{user}:{secret}";
-                var base64EncodedAuthenticationString = Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(authenticationString));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
-
-                var result = await client.GetAsync("https://api.simplewebrtc.com/rooms/active");
-                result.EnsureSuccessStatusCode();
-                string resultString = await result.Content.ReadAsStringAsync();
-                T resultContent = JsonConvert.DeserializeObject<T>(resultString);
-                return resultContent;
             }
         }
     }

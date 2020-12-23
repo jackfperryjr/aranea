@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Web;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading;
@@ -25,7 +26,7 @@ namespace Aranea.Api.Controllers.API.V1
         private readonly IFactory<UserModel, string> _userFactory;
         private readonly IStore<RegisterModel> _userStore;
         private readonly IStore<ApplicationUserModel> _accountStore;
-        private readonly IFactory<JwtSecurityToken, LoginModel> _tokenFactory;
+        private readonly IFactory<object[], LoginModel> _tokenFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private UserManager<ApplicationUserModel> _userManager;
         private IConfiguration _configuration;
@@ -36,7 +37,7 @@ namespace Aranea.Api.Controllers.API.V1
             IFactory<UserModel, string> userFactory,
             IStore<RegisterModel> userStore,
             IStore<ApplicationUserModel> accountStore,
-            IFactory<JwtSecurityToken, LoginModel> tokenFactory,
+            IFactory<object[], LoginModel> tokenFactory,
             IHttpContextAccessor httpContextAccessor,
             UserManager<ApplicationUserModel> userManager,
             IConfiguration configuration)
@@ -86,14 +87,14 @@ namespace Aranea.Api.Controllers.API.V1
                     {
                         await ApplicationExtensions.GetLoginLocationData(model.Username, _httpContextAccessor, _userManager, _accountStore);
                         var user = await _userFactory.GetAsync(login.Username, cancellationToken);
-                        var token = await _tokenFactory.GetAsync(login, cancellationToken);
-                        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                        var tokens = await _tokenFactory.GetAsync(login, cancellationToken);
 
                         return Ok(new
                         {
                             message = "User logged in successfully.",
-                            token = tokenString,
-                            expiration = token.ValidTo,
+                            accessToken = tokens[0],
+                            refreshToken = tokens[1],
+                            expiration = tokens[2],
                             user = user
                         });
                     }
@@ -129,16 +130,15 @@ namespace Aranea.Api.Controllers.API.V1
                 if (isLogin) 
                 {
                     await ApplicationExtensions.GetLoginLocationData(model.Username, _httpContextAccessor, _userManager, _accountStore);
-                    var token = await _tokenFactory.GetAsync(model, cancellationToken);
+                    var tokens = await _tokenFactory.GetAsync(model, cancellationToken);
                     var user = await _userFactory.GetAsync(model.Username, cancellationToken);
-                    var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
                     return Ok(new
                     {
                         message = "User logged in successfully.",
-                        token = tokenString,
-                        expiration = token.ValidTo,
-                        refreshToken = user.Token,
+                        accessToken = tokens[0],
+                        refreshToken = tokens[1],
+                        expiration = tokens[2],
                         user = user
                     });
                 }
@@ -167,33 +167,38 @@ namespace Aranea.Api.Controllers.API.V1
             });        
         } 
 
-        [Obsolete]
-        [HttpGet("penelo")] 
-        public async Task<IActionResult> GetPenelo(string value, CancellationToken cancellationToken = new CancellationToken()) 
+        [HttpPost("refresh")] 
+        public async Task<IActionResult> Refresh([FromBody] string refreshToken, CancellationToken cancellationToken = new CancellationToken()) 
         { 
-            var penelo = _httpContextAccessor.HttpContext.Request.Headers["Origin"];
-            
-            if (penelo.ToString() == _configuration["Penelo"])
+            var userName = ApplicationExtensions.GetUserFromAccessToken(_httpContextAccessor);
+            var user = await _userFactory.GetAsync(userName, cancellationToken);
+
+            if (refreshToken == user.Token)
             {
-                try
+                LoginModel model = new LoginModel() 
                 {
-                    var key = _configuration["SimpleWebRTC:Key"];
-                    var secret = _configuration["SimpleWebRTC:Secret"];
-                    var x = await ApplicationExtensions.Get<Penelo>(key, secret);
-                    return Ok(x);
-                }
-                catch
+                    Username = userName,
+                    Password = "",
+                    Audience = "chocoboAPI"
+                };
+
+                var tokens = await _tokenFactory.GetAsync(model, cancellationToken);
+
+                return Ok(new 
                 {
-                    return BadRequest();
-                }  
-            }
-            else
-            {
-                return BadRequest(new 
-                {
-                    message = "Sorry, bro."
+                        message = "Tokens refreshed successfully.",
+                        accessToken = tokens[0],
+                        refreshToken = tokens[1],
+                        expiration = tokens[2]
                 });
-            }  
+            } 
+            else 
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid refresh token."
+                });
+            }   
         } 
     }
 }

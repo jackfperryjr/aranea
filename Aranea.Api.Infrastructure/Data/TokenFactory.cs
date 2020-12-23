@@ -15,7 +15,7 @@ using Aranea.Api.Core.Extensions;
 
 namespace Aranea.Api.Infrastructure.Data
 {
-    public class TokenFactory : IFactory<JwtSecurityToken, LoginModel>
+    public class TokenFactory : IFactory<object[], LoginModel>
     {
         private UserManager<ApplicationUserModel> _userManager;
         private readonly SignInManager<ApplicationUserModel> _signInManager;
@@ -35,7 +35,7 @@ namespace Aranea.Api.Infrastructure.Data
             _configuration = configuration;
         }
 
-        public async Task<JwtSecurityToken> GetAsync(LoginModel model, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<object[]> GetAsync(LoginModel model, CancellationToken cancellationToken = default(CancellationToken))
         {
             var identity = await _userManager.FindByNameAsync(model.Username);
             var authClaims = new List<Claim>
@@ -47,20 +47,23 @@ namespace Aranea.Api.Infrastructure.Data
             authClaims.AddRange(roles.Select(role => new Claim(ClaimsIdentity.DefaultRoleClaimType, role)));
             var authSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_configuration.GetSection("AppSettings:Secret").Value));
 
-            var refreshToken = ApplicationExtensions.GenerateRefreshToken();
-
             var token = new JwtSecurityToken(
-                issuer: "ChocoboApi", 
+                issuer: "chocoboAPI", 
                 audience: model.Audience,
                 expires: DateTime.Now.AddHours(24),
                 claims: authClaims,
                 signingCredentials: new Microsoft.IdentityModel.Tokens.SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
             );
 
+            var refreshToken = ApplicationExtensions.GenerateRefreshToken();
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
             identity.Token = refreshToken;//new JwtSecurityTokenHandler().WriteToken(token);
             await _context.SaveChangesAsync();
 
-            return token;
+            object[] tokens = {tokenString, refreshToken, token.ValidTo};
+
+            return tokens;
         }
     }
 }
