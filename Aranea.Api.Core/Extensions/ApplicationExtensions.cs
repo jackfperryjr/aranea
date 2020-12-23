@@ -103,6 +103,15 @@ namespace Aranea.Api.Core.Extensions
             return user;
         }
 
+        public static string GetAudienceFromAccessToken(IHttpContextAccessor _httpContextAccessor)
+        {
+            var accessToken = GetAccessTokenFromHeaders(_httpContextAccessor);
+            var token = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+            var aud = token.Claims.First(x => x.Type == "aud").Value;
+
+            return aud;
+        }
+
         public static string GenerateRefreshToken()
         {
             var randomNumber = new byte[32];
