@@ -1,6 +1,7 @@
+using System;  
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
-using System;
 
 namespace Aranea.Api.Core.Models
 {
@@ -16,11 +17,10 @@ namespace Aranea.Api.Core.Models
         public string Country { get; set; }
         public DateTime? BirthDate { get; set; }
         public int Age { get; set; }
-        public string Photo { get; set; }
-        public string Wallpaper { get; set; }
         public string RoleName { get; set; }
         public DateTime JoinDate { get; set; }
         [JsonIgnore]
         public string Token { get; set; }
+        public ICollection<PhotoModel> Photos { get; set; }
     }
 }

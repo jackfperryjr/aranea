@@ -24,16 +24,6 @@ namespace Aranea.Api.Core.Extensions
 {
     public class ApplicationExtensions
     {
-        public static CloudBlobContainer ConfigureBlobContainer(string account, string key)
-        {
-            // Configures container based on credentials passed in.
-            var storageCredentials = new StorageCredentials(account, key);
-            var cloudStorageAccount = new CloudStorageAccount(storageCredentials, true);
-            var cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
-            var container = cloudBlobClient.GetContainerReference("images");
-            return container;
-        }
-
         public static void CreateRoles(IServiceProvider serviceProvider, IConfiguration Configuration)
         {
             string[] roles = { "Admin", "SuperUser", "User", "Banned" };
@@ -58,7 +48,30 @@ namespace Aranea.Api.Core.Extensions
             }
         }
 
-        public async static Task GetLoginLocationData(string username, IHttpContextAccessor _httpContextAccessor, UserManager<ApplicationUserModel> _userManager, IStore<ApplicationUserModel> _accountStore)
+        public static CloudBlobContainer ConfigureBlobContainer(int blob, string account, string key)
+        {
+            // Configures container based on credentials passed in.
+            // blob: 0 for portrait, 1 for wallpaper.
+            var storageCredentials = new StorageCredentials(account, key);
+            var cloudStorageAccount = new CloudStorageAccount(storageCredentials, true);
+            var cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
+            if (blob == 1) 
+            {
+                var container = cloudBlobClient.GetContainerReference("wallpaper");
+                return container;
+            }
+            else 
+            {
+                var container = cloudBlobClient.GetContainerReference("portrait");
+                return container;
+            }
+        }
+
+        public async static Task GetLoginLocationData(
+            string username, 
+            IHttpContextAccessor _httpContextAccessor, 
+            UserManager<ApplicationUserModel> _userManager, 
+            IStore<ApplicationUserModel> _accountStore)
         {
             var userIp = string.Empty;
 
@@ -94,22 +107,16 @@ namespace Aranea.Api.Core.Extensions
             return _httpContextAccessor.HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
         }
 
-        public static string GetUserFromAccessToken(IHttpContextAccessor _httpContextAccessor)
+        public static object[] GetTokenData(IHttpContextAccessor _httpContextAccessor)
         {
-            var accessToken = GetAccessTokenFromHeaders(_httpContextAccessor);
-            var token = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
-            var user = token.Claims.First(x => x.Type == "sub").Value;
+            var token = new JwtSecurityTokenHandler().ReadJwtToken(
+                                GetAccessTokenFromHeaders(_httpContextAccessor)
+                            );
 
-            return user;
-        }
-
-        public static string GetAudienceFromAccessToken(IHttpContextAccessor _httpContextAccessor)
-        {
-            var accessToken = GetAccessTokenFromHeaders(_httpContextAccessor);
-            var token = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+            var sub = token.Claims.First(x => x.Type == "sub").Value;
             var aud = token.Claims.First(x => x.Type == "aud").Value;
-
-            return aud;
+            object[] data = {sub, aud};
+            return data;
         }
 
         public static string GenerateRefreshToken()

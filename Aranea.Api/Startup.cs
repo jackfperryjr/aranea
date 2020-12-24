@@ -52,6 +52,7 @@ namespace Aranea.Api
             services.AddJwtAuthentication(jwtSection)
                     .AddControllers()
                     .AddNewtonsoftJson(opt => {
+                        opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                         opt.SerializerSettings.ContractResolver = 
                             new DefaultContractResolver
                             {

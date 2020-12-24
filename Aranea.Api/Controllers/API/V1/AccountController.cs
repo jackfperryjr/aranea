@@ -170,17 +170,16 @@ namespace Aranea.Api.Controllers.API.V1
         [HttpPost("refresh")] 
         public async Task<IActionResult> Refresh([FromBody] string refreshToken, CancellationToken cancellationToken = new CancellationToken()) 
         { 
-            var userName = ApplicationExtensions.GetUserFromAccessToken(_httpContextAccessor);
-            var audience = ApplicationExtensions.GetAudienceFromAccessToken(_httpContextAccessor);
-            var user = await _userFactory.GetAsync(userName, cancellationToken);
+            var data = ApplicationExtensions.GetTokenData(_httpContextAccessor);
+            var user = await _userFactory.GetAsync(data[0].ToString(), cancellationToken);
 
             if (refreshToken == user.Token)
             {
                 LoginModel model = new LoginModel() 
                 {
-                    Username = userName,
-                    Password = "",
-                    Audience = audience
+                    Username = data[0].ToString(),
+                    Password = String.Empty,
+                    Audience = data[1].ToString()
                 };
 
                 var tokens = await _tokenFactory.GetAsync(model, cancellationToken);

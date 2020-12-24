@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 
@@ -13,8 +14,6 @@ namespace Aranea.Api.Core.Models
         public string Country { get; set; }
         public DateTime? BirthDate { get; set; }
         public int Age { get; set; } = 0;
-        public string Photo { get; set; }
-        public string Wallpaper { get; set; }
         [MaxLength(255)]
         public string Profile { get; set; }
         public string RoleName { get; set; }
@@ -24,5 +23,6 @@ namespace Aranea.Api.Core.Models
         public string LoggedInCity { get; set; }
         public string LoggedInRegion { get; set; }
         public string LoggedInCountry { get; set; }
+        public ICollection<PhotoModel> Photos { get; set; }
     }
 }
