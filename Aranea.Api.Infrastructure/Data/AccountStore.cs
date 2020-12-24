@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -54,58 +55,66 @@ namespace Aranea.Api.Infrastructure.Data
                                     _configuration["StorageConfig:AccountName"], 
                                     _configuration["StorageConfig:AccountKey"]); 
             await wallpaper.CreateIfNotExistsAsync();
-            var files = _httpContextAccessor.HttpContext.Request.Form.Files;
 
-            if (files.Count != 0) 
+            IFormFileCollection files;
+            try 
             {
-                for (var i = 0; i < files.Count; i++)
+                files = _httpContextAccessor.HttpContext.Request.Form.Files;
+                if (files.Count != 0) 
                 {
-                    if (files[i].Name == "portrait")
+                    for (var i = 0; i < files.Count; i++)
                     {
-                        var newID = Guid.NewGuid();
-                        var newBlob = portrait.GetBlockBlobReference(newID + ".png");
-                        using (var filestream = new MemoryStream())
-                        {   
-                            files[i].CopyTo(filestream);
-                            filestream.Position = 0;
-                            await newBlob.UploadFromStreamAsync(filestream);
+                        if (files[i].Name == "portrait")
+                        {
+                            var newID = Guid.NewGuid();
+                            var newBlob = portrait.GetBlockBlobReference(newID + ".png");
+                            using (var filestream = new MemoryStream())
+                            {   
+                                files[i].CopyTo(filestream);
+                                filestream.Position = 0;
+                                await newBlob.UploadFromStreamAsync(filestream);
+                            }
+
+                            PhotoModel photo = new PhotoModel()
+                            {
+                                Id = newID,
+                                Url = "https://rikku.blob.core.windows.net/portrait/" + newID + ".png",
+                                Portrait = 1,
+                                UserId = user.Id
+                            };
+
+                            await _context.AddAsync(photo);
+                            await _context.SaveChangesAsync();
                         }
 
-                        PhotoModel photo = new PhotoModel()
+                        if (files[i].Name == "wallpaper")
                         {
-                            Id = newID,
-                            Url = "https://rikku.blob.core.windows.net/portrait/" + newID + ".png",
-                            Portrait = 1,
-                            UserId = user.Id
-                        };
+                            var newID = Guid.NewGuid();
+                            var newBlob = wallpaper.GetBlockBlobReference(newID + ".png");
+                            using (var filestream = new MemoryStream())
+                            {   
+                                files[i].CopyTo(filestream);
+                                filestream.Position = 0;
+                                await newBlob.UploadFromStreamAsync(filestream);
+                            }
 
-                        await _context.AddAsync(photo);
-                        await _context.SaveChangesAsync();
-                    }
-
-                    if (files[i].Name == "wallpaper")
-                    {
-                        var newID = Guid.NewGuid();
-                        var newBlob = wallpaper.GetBlockBlobReference(newID + ".png");
-                        using (var filestream = new MemoryStream())
-                        {   
-                            files[i].CopyTo(filestream);
-                            filestream.Position = 0;
-                            await newBlob.UploadFromStreamAsync(filestream);
+                            PhotoModel photo = new PhotoModel()
+                            {
+                                Id = newID,
+                                Url = "https://rikku.blob.core.windows.net/wallpaper/" + newID + ".png",
+                                Wallpaper = 1,
+                                UserId = user.Id
+                            };
+                                                    
+                            await _context.AddAsync(photo);
+                            await _context.SaveChangesAsync();
                         }
-
-                        PhotoModel photo = new PhotoModel()
-                        {
-                            Id = newID,
-                            Url = "https://rikku.blob.core.windows.net/wallpaper/" + newID + ".png",
-                            Wallpaper = 1,
-                            UserId = user.Id
-                        };
-                                                
-                        await _context.AddAsync(photo);
-                        await _context.SaveChangesAsync();
                     }
                 }
+            }
+            catch
+            {
+                // TODO:
             }
 
             // user.UserName = model.UserName;
@@ -126,15 +135,16 @@ namespace Aranea.Api.Infrastructure.Data
         {
             var user = await _userManager.FindByIdAsync(model.Id);
             var roles = await _userManager.GetRolesAsync(user);
-            // var photos = await _context.Photos.Where(x => x.CollectionId == model.Id).ToListAsync();
+            var photos = await _context.AspNetUserPhotos.Where(x => x.UserId == model.Id).ToListAsync();
  
             foreach (var role in roles)
             {
                 await _userManager.RemoveFromRoleAsync(user, role);
             }
 
-            var result = await _userManager.DeleteAsync(user);
-
+            _context.AspNetUserPhotos.RemoveRange(photos);
+            await _userManager.DeleteAsync(user);
+            _context.SaveChanges();
             return model;
         }
     }
