@@ -46,7 +46,7 @@ namespace Aranea.Api.Infrastructure.Data
             user.RoleName = identity.RoleName;
             user.JoinDate = identity.JoinDate;
             user.Token = identity.Token;
-            user.Photos = identity.Photos;
+            user.Photos = identity.Photos.OrderByDescending(x => x.Timestamp).ToList();
 
             return user;
         }
