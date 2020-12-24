@@ -44,112 +44,81 @@ namespace Aranea.Api.Infrastructure.Data
         public async Task<ApplicationUserModel> UpdateAsync(ApplicationUserModel model, CancellationToken cancellationToken = new CancellationToken())
         {
             var user = await _userManager.FindByIdAsync(model.Id);
-
-            // This container is used for blob storage uploads.
-            var container = ApplicationExtensions.ConfigureBlobContainer(
+            var portrait = ApplicationExtensions.ConfigureBlobContainer( // Container for portraits.
+                                    0,
                                     _configuration["StorageConfig:AccountName"], 
                                     _configuration["StorageConfig:AccountKey"]); 
-            await container.CreateIfNotExistsAsync();
-            var newID = Guid.NewGuid();
+            await portrait.CreateIfNotExistsAsync();
+            var wallpaper = ApplicationExtensions.ConfigureBlobContainer( // Container for wallpapers.
+                                    1,
+                                    _configuration["StorageConfig:AccountName"], 
+                                    _configuration["StorageConfig:AccountKey"]); 
+            await wallpaper.CreateIfNotExistsAsync();
+            var files = _httpContextAccessor.HttpContext.Request.Form.Files;
 
-            if (model.Photo != user.Photo)
+            if (files.Count != 0) 
             {
-                var files = _httpContextAccessor.HttpContext.Request.Form.Files;
-
-                if (files.Count != 0) 
+                for (var i = 0; i < files.Count; i++)
                 {
-                    for (var i = 0; i < files.Count; i++)
+                    if (files[i].Name == "portrait")
                     {
-                        if (files[i].Name == "photo")
-                        {
-                            var newBlob = container.GetBlockBlobReference(newID + "-p.png");
-
-                            using (var filestream = new MemoryStream())
-                            {   
-                                files[i].CopyTo(filestream);
-                                filestream.Position = 0;
-                                await newBlob.UploadFromStreamAsync(filestream);
-                            }
-
-                            user.Photo = "https://rikku.blob.core.windows.net/images/" + newID + "-p.png";
+                        var newID = Guid.NewGuid();
+                        var newBlob = portrait.GetBlockBlobReference(newID + ".png");
+                        using (var filestream = new MemoryStream())
+                        {   
+                            files[i].CopyTo(filestream);
+                            filestream.Position = 0;
+                            await newBlob.UploadFromStreamAsync(filestream);
                         }
+
+                        PhotoModel photo = new PhotoModel()
+                        {
+                            Id = newID,
+                            Url = "https://rikku.blob.core.windows.net/portrait/" + newID + ".png",
+                            Portrait = 1,
+                            UserId = user.Id
+                        };
+
+                        await _context.AddAsync(photo);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    if (files[i].Name == "wallpaper")
+                    {
+                        var newID = Guid.NewGuid();
+                        var newBlob = wallpaper.GetBlockBlobReference(newID + ".png");
+                        using (var filestream = new MemoryStream())
+                        {   
+                            files[i].CopyTo(filestream);
+                            filestream.Position = 0;
+                            await newBlob.UploadFromStreamAsync(filestream);
+                        }
+
+                        PhotoModel photo = new PhotoModel()
+                        {
+                            Id = newID,
+                            Url = "https://rikku.blob.core.windows.net/wallpaper/" + newID + ".png",
+                            Wallpaper = 1,
+                            UserId = user.Id
+                        };
+                                                
+                        await _context.AddAsync(photo);
+                        await _context.SaveChangesAsync();
                     }
                 }
             }
 
-            if (model.Wallpaper != user.Wallpaper)
-            {
-                var files = _httpContextAccessor.HttpContext.Request.Form.Files;
-
-                if (files.Count != 0) 
-                {
-                    for (var i = 0; i < files.Count; i++)
-                    {
-                        if (files[i].Name == "wallpaper")
-                        {
-                            var newBlob = container.GetBlockBlobReference(newID + "-w.png");
-
-                            using (var filestream = new MemoryStream())
-                            {   
-                                files[i].CopyTo(filestream);
-                                filestream.Position = 0;
-                                await newBlob.UploadFromStreamAsync(filestream);
-                            }
-
-                            user.Wallpaper = "https://rikku.blob.core.windows.net/images/" + newID + "-w.png";
-                        }
-                    }
-                }
-            }
-
-            // if (model.UserName != null && model.UserName != user.UserName)
-            // {
-            //     user.UserName = model.UserName;
-            // }
-
-            if (model.FirstName != null && model.FirstName != user.FirstName)
-            {
-                user.FirstName = model.FirstName;
-            }
-
-            if (model.LastName != null && model.LastName != user.LastName)
-            {
-                user.LastName = model.LastName;
-            }
-
-            if (model.City != null && model.City != user.City)
-            {
-                user.City = model.City;
-            }
-
-            if (model.State != null && model.State != user.State)
-            {
-                user.State = model.State;
-            }
-
-            if (model.BirthDate != null && Convert.ToDateTime(model.BirthDate) != user.BirthDate)
-            {
-                user.BirthDate = Convert.ToDateTime(model.BirthDate);
-            }
-
-            if (model.Age != 0 && model.Age != user.Age)
-            {
-                user.Age = model.Age;
-            }
-
-            if (model.Profile != null && model.Profile != user.Profile)
-            {
-                user.Profile = model.Profile;
-            }
-
-            if (model.Email != null && model.Email != user.Email)
-            {
-                user.Email = model.Email;
-            }
-
+            // user.UserName = model.UserName;
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+            user.City = model.City;
+            user.State = model.State;
+            user.BirthDate = Convert.ToDateTime(model.BirthDate);
+            user.Age = model.Age;
+            user.Profile = model.Profile;
+            user.Email = model.Email;
             user.LoggedInIP = model.LoggedInIP;
             var result = await _userManager.UpdateAsync(user);
-
             return model;
         }
 
@@ -157,6 +126,7 @@ namespace Aranea.Api.Infrastructure.Data
         {
             var user = await _userManager.FindByIdAsync(model.Id);
             var roles = await _userManager.GetRolesAsync(user);
+            // var photos = await _context.Photos.Where(x => x.CollectionId == model.Id).ToListAsync();
  
             foreach (var role in roles)
             {

@@ -32,10 +32,9 @@ namespace Aranea.Api.Infrastructure.Data
                 UserName = model.Username, 
                 Email = model.Email, 
                 FirstName = model.FirstName,
-                Photo = "https://rikku.blob.core.windows.net/images/default-avatar.png",
-                Wallpaper = "https://rikku.blob.core.windows.net/images/default-wallpaper.png",
                 JoinDate = DateTime.Now
             };
+
             var result = await _userManager.CreateAsync(user, model.Password);
             var users = _userManager.Users.ToList();
 

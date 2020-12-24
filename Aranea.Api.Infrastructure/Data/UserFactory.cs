@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Aranea.Api.Core.Abstractions;
 using Aranea.Api.Core.Models;
 
@@ -26,7 +28,10 @@ namespace Aranea.Api.Infrastructure.Data
         public async Task<UserModel> GetAsync(string username, CancellationToken cancellationToken = default(CancellationToken))
         {
             UserModel user = new UserModel();
-            var identity = await _userManager.FindByNameAsync(username);
+            var identity = _context.Users
+                                    .Include(x => x.Photos)
+                                    .Where(x => x.UserName == username)
+                                    .FirstOrDefault();
 
             user.Id = identity.Id;
             user.UserName = identity.UserName;
@@ -38,11 +43,10 @@ namespace Aranea.Api.Infrastructure.Data
             user.City = identity.City;
             user.State = identity.State;
             user.Country = identity.Country;
-            user.Photo = identity.Photo;
-            user.Wallpaper = identity.Wallpaper;
             user.RoleName = identity.RoleName;
             user.JoinDate = identity.JoinDate;
             user.Token = identity.Token;
+            user.Photos = identity.Photos;
 
             return user;
         }
