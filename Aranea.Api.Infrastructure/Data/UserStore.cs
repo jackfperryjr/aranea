@@ -31,7 +31,7 @@ namespace Aranea.Api.Infrastructure.Data
             { 
                 UserName = model.Username, 
                 Email = model.Email, 
-                FirstName = model.FirstName,
+                Name = model.Name,
                 JoinDate = DateTime.Now
             };
 

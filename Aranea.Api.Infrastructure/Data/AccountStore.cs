@@ -118,13 +118,11 @@ namespace Aranea.Api.Infrastructure.Data
             }
 
             // user.UserName = model.UserName;
-            user.FirstName = model.FirstName;
-            user.LastName = model.LastName;
+            user.Name = model.Name;
             user.City = model.City;
             user.State = model.State;
             user.BirthDate = Convert.ToDateTime(model.BirthDate);
-            user.Age = model.Age;
-            user.Profile = model.Profile;
+            user.Bio = model.Bio;
             user.Email = model.Email;
             user.LoggedInIP = model.LoggedInIP;
             var result = await _userManager.UpdateAsync(user);

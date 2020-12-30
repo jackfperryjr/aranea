@@ -13,7 +13,7 @@ namespace Aranea.Api.Core.Models
         public string Username { get; set; }
 
         [Required]
-        public string FirstName { get; set; }
+        public string Name { get; set; }
 
         public DateTime JoinDate { get; set; }
 

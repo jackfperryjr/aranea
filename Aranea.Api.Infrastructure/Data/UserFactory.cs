@@ -36,10 +36,9 @@ namespace Aranea.Api.Infrastructure.Data
             user.Id = identity.Id;
             user.UserName = identity.UserName;
             user.Email = identity.Email;
-            user.FirstName = identity.FirstName;
-            user.LastName = identity.LastName;
+            user.Name = identity.Name;
             user.BirthDate = identity.BirthDate;
-            user.Age = identity.Age;
+            user.Bio = identity.Bio;
             user.City = identity.City;
             user.State = identity.State;
             user.Country = identity.Country;

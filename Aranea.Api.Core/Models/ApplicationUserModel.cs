@@ -7,15 +7,13 @@ namespace Aranea.Api.Core.Models
 {
     public class ApplicationUserModel : IdentityUser
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
+        public string Name { get; set; }
         public string City { get; set; }
         public string State { get; set; }
         public string Country { get; set; }
         public DateTime? BirthDate { get; set; }
-        public int Age { get; set; } = 0;
         [MaxLength(255)]
-        public string Profile { get; set; }
+        public string Bio { get; set; }
         public string RoleName { get; set; }
         public DateTime JoinDate { get; set; }
         public string Token { get; set; }
